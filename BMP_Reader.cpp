@@ -1,10 +1,18 @@
-﻿// BMP_Reader.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
-//
-
-#include <iostream>
+﻿#include <iostream>
+#include <fstream>
+using namespace std;
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	string fileIn = "//file/2.bmp";
+	ifstream file(fileIn,binaty);
+
+	//输出文件
+	string fileOut = "//file/1.txt";
+	FILE* fout = fopen(fileOut.c_str(), "w+");
+	fprintf(fout, "aa");
+	//fout << nNum << "," << str << std::endl;
+	//fprintf(fout, "%.3f  %.3f  %.6f\n", j * p.h, l * p.h, u[40][l][j]);
+	fclose(fout);
 }
 
