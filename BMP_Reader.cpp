@@ -1,9 +1,11 @@
 ﻿#pragma warning (disable:4996)
+#pragma pack(2)
 #include <iostream>
 #include <fstream>
 using namespace std;
 #define BYTE unsigned char
 
+//struct存在以4或8为标志进行字节对齐，需要用pack（2）限定对齐系数大小
 struct FileHader {
 	unsigned short	bfType;
 	unsigned long	bfSize;
@@ -41,23 +43,12 @@ struct Image {
 void main()
 {
 	string fileIn = "D:\\WorkSpace\\TsetFile\\img\\lena_24bit.bmp";
-	FILE* file = fopen(fileIn.c_str(),"rb");
-	
-	if (file==NULL) {
-		cout << "File Open Error" << endl;
-		return ;
+	ifstream file(fileIn,ios::in|ios::binary);
+	if (file.fail()) {
+		cout << "File Error" << endl;
+		return;
 	}
-	
-	BYTE szBuf[256] = { 0 };
-	int intBuf[256] = { 0 };
-	//fread(szBuf, 1, 54, file);	//将前54个字节读入szBuf再进行处理
-	fread(fileHader, 1, 14, file);
-
-
-	for (int i = 0; i < 54; i++) {
-		intBuf[i] = (int)(szBuf[i] - NULL);
-		cout << intBuf[i] << endl;
-	}
+	file.read(reinterpret_cast <char*>(&fileHader), 14);
 
 	char* dataBuf = NULL;
 
