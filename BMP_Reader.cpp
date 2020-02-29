@@ -14,7 +14,7 @@ struct FileHader {
 	unsigned long	bfOffBits;
 }fileHader;
 
-struct InforHader {
+struct InfoHader {
 	unsigned long	biSize;
 	unsigned long	biWidth;
 	unsigned long	biHeight;
@@ -26,14 +26,14 @@ struct InforHader {
 	unsigned long	biYperlsPerMeter;
 	unsigned long	biClrUsed;
 	unsigned long	biCleImportant;
-}inforHader;
+}infoHader;
 
 struct ColorTable {
-	char* colorData;
+	unsigned char* colorData;
 }clrTable;
 
 struct Image {
-	char* imageData;
+	unsigned char* imageData;
 	unsigned long	width;
 	unsigned long	height;
 	unsigned int	channels;
@@ -42,24 +42,55 @@ struct Image {
 
 void main()
 {
-	string fileIn = "D:\\WorkSpace\\TsetFile\\img\\lena_24bit.bmp";
+	string fileIn = "resources//lena_24bit.bmp";
 	ifstream file(fileIn,ios::in|ios::binary);
 	if (file.fail()) {
 		cout << "File Error" << endl;
 		return;
 	}
 	file.read(reinterpret_cast <char*>(&fileHader), 14);
+	file.read((char*)& infoHader, 40);
 
-	char* dataBuf = NULL;
+	unsigned char* dataBuf = NULL;
 
+	//无colorTable情况
+	if (fileHader.bfOffBits == 54) {
+		int width = infoHader.biWidth;
+		int height = infoHader.biHeight;
+		if (infoHader.biBitCount == 24) {
+			if (dataBuf = (unsigned char*)malloc(width * height * 3 * sizeof(char))) {
+				memset(dataBuf, 0, width * height * 3 * sizeof(char));
+			}
+			else {
+				cout << "Malloc Error" << endl;
+				return;
+			}
+			imageDatas.channels = 3;
+			imageDatas.width = width;
+			imageDatas.height = height;
+			file.read((char*)dataBuf, (long)width * (long)height * 3 * sizeof(char));
+			imageDatas.imageData = dataBuf;
+			//cout << dataBuf[0] - NULL << endl;
+		}
+	}
+	else {
 
-	//file.close();
-	////输出文件
-	//string fileOut = "//file/1.txt";
-	//FILE* fout = fopen(fileOut.c_str(), "w+");
+	}
+
+	
+	//输出文件
+	string fileOut = "resources//1.txt";
+	FILE* fout = fopen(fileOut.c_str(), "w+");
 	//fprintf(fout, "aa");
-	////fout << nNum << "," << str << std::endl;
-	////fprintf(fout, "%.3f  %.3f  %.6f\n", j * p.h, l * p.h, u[40][l][j]);
-	//fclose(fout);
+	for (unsigned int i = 0; i <= (int)imageDatas.width * imageDatas.height * 3; i+=3) {
+		if (i % (500*3) == 0 && i!=0) fprintf(fout, "\n");
+		fprintf(fout, "(%X %X %X)   ", (imageDatas.imageData[i]), (imageDatas.imageData[i+1]), (imageDatas.imageData[i+2] ));
+		//fprintf(fout, "(%d)   ", (int)(imageDatas.imageData[i] - NULL));
+	}
+	//fprintf(fout, "(%d)   ", (int)(imageDatas.imageData[0] - NULL));
+	//fout << nNum << "," << str << std::endl;
+	//fprintf(fout, "%.3f  %.3f  %.6f\n", j * p.h, l * p.h, u[40][l][j]);
+	fclose(fout);
+	file.close();
 }
 
