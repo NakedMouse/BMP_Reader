@@ -99,6 +99,8 @@ void main()
 	printData();
 	getGrayHistogram();
 	transToGray();
+
+
 }
 
 
