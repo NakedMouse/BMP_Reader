@@ -38,11 +38,24 @@ struct Image {
 	unsigned int	channels;
 }imageDatas;
 
+void printData(string fileIn);
+void getGrayHistogram(string);
+void readBMP(string fileIn);
 
 void main()
 {
+	//string fileIn = "resources//lena_gray.bmp";
 	string fileIn = "resources//lena_24bit.bmp";
-	ifstream file(fileIn,ios::in|ios::binary);
+	
+	printData(fileIn);
+}
+
+void readBMP(string fileIn) {
+
+}
+
+void printData(string fileIn) {
+	ifstream file(fileIn, ios::in | ios::binary);
 	if (file.fail()) {
 		cout << "File Error" << endl;
 		return;
@@ -51,39 +64,50 @@ void main()
 	file.read((char*)& infoHader, 40);
 
 	unsigned char* dataBuf = NULL;
+	unsigned int width = infoHader.biWidth;
+	unsigned int height = infoHader.biHeight;
+	unsigned int channels = infoHader.biBitCount / 8;
+	unsigned int length = width * height * channels;
+	if (dataBuf = (unsigned char*)malloc(length * sizeof(char))) {
+		memset(dataBuf, 0, length * sizeof(char));
+	}
+	else {
+		cout << "Malloc Error" << endl;
+		return;
+	}
+	imageDatas.channels = channels;
+	imageDatas.width = width;
+	imageDatas.height = height;
 
 	//无colorTable情况
 	if (fileHader.bfOffBits == 54) {
-		unsigned int width = infoHader.biWidth;
-		unsigned int height = infoHader.biHeight;
-		unsigned int channels = infoHader.biBitCount / 8;
-		unsigned int length = width * height * channels;
-
-		if (dataBuf = (unsigned char*)malloc(length * sizeof(char))) {
-			memset(dataBuf, 0, length * sizeof(char));
-		}
-		else {
-			cout << "Malloc Error" << endl;
-			return;
-		}
-		imageDatas.channels = channels;
-		imageDatas.width = width;
-		imageDatas.height = height;
-		file.read((char*)dataBuf, length * sizeof(char));
+		file.seekg(fileHader.bfOffBits);
+		file.read((char*)dataBuf, length * sizeof(unsigned char));
 		imageDatas.imageData = dataBuf;
 		//cout << dataBuf[0] - NULL << endl;
 	}
 	else {
-
+		unsigned char* clrBuf;
+		if (clrBuf = (unsigned char*)malloc(fileHader.bfOffBits - 54)) {
+			memset(clrBuf, 0, fileHader.bfOffBits - 54);
+		}
+		else {
+			cout << "ClrBuf Error" << endl;
+		}
+		file.read((char*)clrBuf, fileHader.bfOffBits - 54);
+		clrTable.colorData = clrBuf;
+		file.seekg(fileHader.bfOffBits);
+		file.read((char*)dataBuf, length * sizeof(unsigned char));
+		imageDatas.imageData = dataBuf;
 	}
 
-	
+
 	//输出文件
 	string fileOut = "resources//1.txt";
 	FILE* fout = fopen(fileOut.c_str(), "w+");
-	for (unsigned int i = 0; i <= (int)imageDatas.width * imageDatas.height * 3; i+=3) {
-		if (i % (500*3) == 0 && i!=0) fprintf(fout, "\n");
-		fprintf(fout, "(%X %X %X)   ", imageDatas.imageData[i], imageDatas.imageData[i + 1], imageDatas.imageData[i + 2]);
+	for (unsigned int i = 0; i < (int)length * sizeof(unsigned char); i++) {
+		//if (i % 2 == 0 && i != 0) fprintf(fout, "  ");
+		fprintf(fout, "%3.X ", imageDatas.imageData[i]);
 	}
 	//fout << nNum << "," << str << std::endl;
 	//fprintf(fout, "%.3f  %.3f  %.6f\n", j * p.h, l * p.h, u[40][l][j]);
@@ -91,3 +115,29 @@ void main()
 	file.close();
 }
 
+void getGrayHistogram(string fileIn) {
+	ifstream file(fileIn, ios::binary);
+	if (file.fail()) {
+		cout << "File Open Error" << endl;
+		return;
+	}
+	file.read((char*)&fileHader, 14);
+	file.read((char*)& infoHader, 40);
+
+	unsigned char* dataBuf = NULL;
+	unsigned int width = infoHader.biWidth;
+	unsigned int height = infoHader.biHeight;
+	unsigned int channels = infoHader.biBitCount / 8;
+	unsigned int length = width * height * channels;
+	if (dataBuf = (unsigned char*)malloc(length * sizeof(char))) {
+		memset(dataBuf, 0, length * sizeof(char));
+	}
+	else {
+		cout << "Malloc Error" << endl;
+		return;
+	}
+	imageDatas.channels = channels;
+	imageDatas.width = width;
+	imageDatas.height = height;
+
+}
