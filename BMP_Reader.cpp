@@ -45,8 +45,8 @@ void transToGray();
 
 void main()
 {
-	string fileIn = "resources//lena_gray.bmp";
-	//string fileIn = "resources//lena_24bit.bmp";
+	//string fileIn = "resources//lena_gray.bmp";
+	string fileIn = "resources//lena_24bit.bmp";
 	ifstream file(fileIn, ios::in | ios::binary);
 	if (file.fail()) {
 		cout << "File Error" << endl;
@@ -98,6 +98,7 @@ void main()
 	//将数组打印到txt上
 	printData();
 	getGrayHistogram();
+	transToGray();
 }
 
 
@@ -145,4 +146,40 @@ void transToGray() {
 		cout << "Is Not 24Bit Image , Can not Transfer TO Gray Image" << endl;
 		return;
 	}
+
+	unsigned int length = imageDatas.width * imageDatas.height;
+	//Gray = (R*299 + G*587 + B*114 + 500) / 1000 转换算法
+	unsigned int* gray;
+	if (gray = (unsigned int*)malloc(length*sizeof(unsigned int))) {
+		memset(gray, 0, length * sizeof(unsigned int));
+	}
+	else {
+		cout << "TransToGray Malloc Error" << endl;
+		return;
+	}
+
+	for (int i = 0, j = 0; i < length; i++) {
+		unsigned int R = (int)(imageDatas.imageData[j] - NULL);
+		unsigned int G = (int)(imageDatas.imageData[j+1] - NULL);
+		unsigned int B = (int)(imageDatas.imageData[j+2] - NULL);
+		j += 3;
+		gray[i] = (R * 299 + G * 587 + B * 144 + 500) / 1000;
+	}
+
+	string originOut = "resources\\TransOrigin.txt";
+	string transOut = "resources\\TransOut.txt";
+	FILE* fout = fopen(originOut.c_str(), "w+");
+	fprintf(fout, "Origin Image Datas \n");
+	for (int i = 0; i < length * 3; i++) {
+		fprintf(fout, "%3.X  ", imageDatas.imageData[i]);
+	}
+
+	fclose(fout);
+	fout = fopen(transOut.c_str(), "w+");
+	fprintf(fout, "\n Gray Image Datas (unsigned int type)\n");
+	for (int i = 0; i < length; i++) {
+		fprintf(fout, "%.3d  ", gray[i]);
+	}
+	fclose(fout);
+	return;
 }
