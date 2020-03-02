@@ -47,8 +47,8 @@ void transToGray();
 
 void main()
 {
-	//string fileIn = "resources//lena_low_8bit.bmp";
-	string fileIn = "resources//lena_low_24bit.bmp";
+	string fileIn = "resources//lena_low_8bit.bmp";
+	//string fileIn = "resources//lena_low_24bit.bmp";
 	ifstream file(fileIn, ios::in | ios::binary);
 	if (file.fail()) {
 		cout << "File Error" << endl;
@@ -102,7 +102,6 @@ void main()
 	getGrayHistogram();
 	transToGray();
 
-
 }
 
 
@@ -153,58 +152,65 @@ void transToGray() {
 
 	unsigned int length = imageDatas.length;
 	//Gray = (R*299 + G*587 + B*114 + 500) / 1000 转换算法
-	vector<vector<unsigned int>> gray;
+	unsigned char* gray;
+	unsigned int pixel_width = imageDatas.width;
+	unsigned int gray_l_width = (pixel_width + 3) / 4 * 4;
+	unsigned int gray_length = imageDatas.height * gray_l_width;
 
-	//for (int i = 0, j = 0, m = 0, n = 0; i < length; i++) {
-	//	unsigned int R = (int)(imageDatas.imageData[j] - NULL);
-	//	unsigned int G = (int)(imageDatas.imageData[j+1] - NULL);
-	//	unsigned int B = (int)(imageDatas.imageData[j+2] - NULL);
-	//	j += 3;
-	//	gray[i ][ j] = (R * 299 + G * 587 + B * 144 + 500) / 1000;
-	//	if()
-	//}
-
-	for (int i = 0; i < imageDatas.height; i++) {
-		vector<unsigned int> vec;
-		gray.push_back(vec);
+	if (gray = (unsigned char*)malloc(gray_length)) {
+		memset(gray, 0, gray_length);
+	}
+	else {
+		cout << "Gray memorry error" << endl;
+		return;
 	}
 
-	for (int h = 0, w = 0, i; h < imageDatas.height; h++) {
-		for (w = 0, i = 0; w < imageDatas.width; w++) {
+	unsigned int fixNum = gray_l_width - pixel_width;
+	for (unsigned int h = 0, w = 0, i = 0; h < imageDatas.height / 2; h++) {
+		unsigned char charTemp;
+		unsigned int temp;
+		for (w = 0, i = 0; w < pixel_width; w++) {
 			unsigned int R = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + i];
 			unsigned int G = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + i + 1];
 			unsigned int B = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + i + 2];
 			i += 3;
-			unsigned int temp;
 			temp = (R * 299 + G * 587 + B * 144 + 500) / 1000;
-			gray[h].push_back(temp);
+			charTemp = (unsigned char)(0xff & temp);
+			gray[h * gray_l_width + w] = charTemp;
+		}
+
+		//补位
+		charTemp = 0xff;
+		for (unsigned int j = 0; j < fixNum; j++) {
+			gray[h * gray_l_width + w + j] = charTemp;
 		}
 	}
 
-	string originOut = "resources\\TransOrigin.txt";
-	string transOut = "resources\\TransOut.txt";
-	FILE* fout = fopen(originOut.c_str(), "w+");
-	fprintf(fout, "Origin Image Datas \n");
-	//for (int i = 0; i < length; i++) {
-	//	fprintf(fout, "%3.X  ", imageDatas.imageData[i]);
-	//}
-	for (int h = 0; h < imageDatas.height; h++) {
-		for (int i = 0, w = 0; i < imageDatas.width; i++) {
-			unsigned int R = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + w];
-			unsigned int G = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + w + 1];
-			unsigned int B = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + w + 2];
-			w += 3;
-			fprintf(fout, "(%2.2X %2.2X %2.2X) ", R, G, B);
+	//文件输出
+	string fileOut = "resources\\TransData.txt";
+	FILE* fout = fopen(fileOut.c_str(), "w+");
+	fprintf(fout, "Trans Image Datas \n");
+	for (unsigned int h = 0; h < imageDatas.height / 2; h++) {
+		for (unsigned int w = 0; w < gray_l_width; w++) {
+			fprintf(fout, "%2.X  ", gray[h * gray_l_width + w]);
 		}
 		fprintf(fout, "\n");
 	}
 
-	fclose(fout);
-	fout = fopen(transOut.c_str(), "w+");
-	fprintf(fout, "\n Gray Image Datas (unsigned int type)\n");
-	for (int i = 0; i < imageDatas.height; i++) {
-		for (int j = 0; j < imageDatas.width; j++) {
-			fprintf(fout, "%2.2X  ", gray[i][j]);
+	
+	fixNum = imageDatas.l_width - pixel_width * 3;
+	unsigned int height = imageDatas.height / 2;
+	for (unsigned int h = height, w = 0, i = 0; h < imageDatas.height; h++) {
+		for (w = 0, i = 0; w < pixel_width; w++) {
+			unsigned int R = (unsigned int)imageDatas.imageData[h*imageDatas.l_width+i];
+			unsigned int G = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + i + 1];
+			unsigned int B = (unsigned int)imageDatas.imageData[h * imageDatas.l_width + i + 2];
+			i += 3;
+			fprintf(fout, "(%2.2X %2.2X %2.2X) ", R, G, B);
+		}
+		for (int j = 0; j < fixNum; j++) {
+			//gray[h * gray_l_width + w + j] = charTemp;
+			fprintf(fout, "%2.2X  ", imageDatas.imageData[h * imageDatas.l_width + w * 3 + j]);
 		}
 		fprintf(fout, "\n");
 	}
