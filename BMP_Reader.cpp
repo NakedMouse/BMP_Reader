@@ -47,8 +47,8 @@ void transToGray();
 
 void main()
 {
-	string fileIn = "resources//lena_low_8bit.bmp";
-	//string fileIn = "resources//lena_low_24bit.bmp";
+	//string fileIn = "resources//lena_low_8bit.bmp";
+	string fileIn = "resources//lena_low_24bit.bmp";
 	ifstream file(fileIn, ios::in | ios::binary);
 	if (file.fail()) {
 		cout << "File Error" << endl;
@@ -109,10 +109,17 @@ void printData() {
 	//输出文件
 	string fileOut = "resources//data.txt";
 	FILE* fout = fopen(fileOut.c_str(), "w+");
-	unsigned int length = imageDatas.length;
-	for (unsigned int i = 0; i < (unsigned int)length; i++) {
-		//if (i % 2 == 0 && i != 0) fprintf(fout, "  ");
-		fprintf(fout, "%3.X ", imageDatas.imageData[i]);
+	
+	unsigned int pixel_width = imageDatas.width;
+	unsigned int fixNum = imageDatas.l_width - imageDatas.width * imageDatas.channels;
+	for (unsigned int h = 0, w = 0, i = 0; h < imageDatas.height; h++) {
+		for (w = 0; w < pixel_width * imageDatas.channels; w++) {
+			fprintf(fout, "%2.2X  ", imageDatas.imageData[h * imageDatas.l_width + w]);
+		}
+		for (int j = 0; j < fixNum; j++) {
+			fprintf(fout, "%2.2X  ", imageDatas.imageData[h * imageDatas.l_width + w  + j]);
+		}
+		fprintf(fout, "\n");
 	}
 	//fout << nNum << "," << str << std::endl;
 	//fprintf(fout, "%.3f  %.3f  %.6f\n", j * p.h, l * p.h, u[40][l][j]);
@@ -210,7 +217,7 @@ void transToGray() {
 		}
 		for (int j = 0; j < fixNum; j++) {
 			//gray[h * gray_l_width + w + j] = charTemp;
-			fprintf(fout, "%2.2X  ", imageDatas.imageData[h * imageDatas.l_width + w * 3 + j]);
+			fprintf(fout, "%2.2X  ", imageDatas.imageData[h * imageDatas.l_width + w * imageDatas.channels + j]);
 		}
 		fprintf(fout, "\n");
 	}
